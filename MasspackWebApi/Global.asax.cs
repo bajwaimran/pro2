@@ -18,6 +18,7 @@ namespace MasspackWebApi
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+            XpoHelper.GetDataLayer();
         }
     }
 }
