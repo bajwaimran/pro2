@@ -1,18 +1,14 @@
-using System;
-using DevExpress.Xpo;
-using DevExpress.Xpo.Metadata;
-//using BestellErfassung.FileHelpers;
-//using DevExpress.Persistent.Base;
-using System.Collections;
-using DevExpress.Data.Filtering;
 using BestellErfassung.FileHelpers;
+using DevExpress.Data.Filtering;
+using DevExpress.Xpo;
+using System;
 //using DevExpress.Persistent.BaseImpl;
 
 
 namespace BestellErfassung.DomainObjects.Artikel
 {
     //[DefaultClassOptions]
-    public class Artikelstamm :BasePersistentObject
+    public class Artikelstamm : XPObject
     {
         public Artikelstamm(Session session) : base(session) { }
 
@@ -21,37 +17,37 @@ namespace BestellErfassung.DomainObjects.Artikel
 
         protected override void OnSaving()
         {
-            //if (Session.IsNewObject(this))
-            //{
-            //    try
-            //    {
-            //        if (ArtNrInt == 0)
-            //        {
-            //            int fArtNrInt;
-            //            do
-            //            {
-            //                fArtNrInt = IntegerFunctions.ProceedeNumber("ArtNrInt", ArtNrInt, 100000);
+            if (Session.IsNewObject(this))
+            {
+                try
+                {
+                    if (ArtNrInt == 0)
+                    {
+                        int fArtNrInt;
+                        do
+                        {
+                            fArtNrInt = IntegerFunctions.ProceedeNumber("ArtNrInt", ArtNrInt, 100000);
 
-            //                DomainObjects.Artikel.Artikelstamm _artnrintgef = Session.DefaultSession.FindObject<DomainObjects.Artikel.Artikelstamm>(CriteriaOperator.Parse("ArtNrInt == ?", fArtNrInt));
-            //                if (_artnrintgef != null)
-            //                    ArtNrInt_nichtgefunden = false;
-            //                else
-            //                    ArtNrInt_nichtgefunden = true;
+                            DomainObjects.Artikel.Artikelstamm _artnrintgef = Session.DefaultSession.FindObject<DomainObjects.Artikel.Artikelstamm>(CriteriaOperator.Parse("ArtNrInt == ?", fArtNrInt));
+                            if (_artnrintgef != null)
+                                ArtNrInt_nichtgefunden = false;
+                            else
+                                ArtNrInt_nichtgefunden = true;
 
-            //            } while (ArtNrInt_nichtgefunden == false);
+                        } while (ArtNrInt_nichtgefunden == false);
 
-            //            if ((fArtNrInt > 0) && ArtNrInt != fArtNrInt)
-            //                ArtNrInt = fArtNrInt;
-            //        }
-                    
-            //    }
+                        if ((fArtNrInt > 0) && ArtNrInt != fArtNrInt)
+                            ArtNrInt = fArtNrInt;
+                    }
 
-                   
-            //    catch
-            //    {
+                }
 
-            //    }
-            //}
+
+                catch
+                {
+
+                }
+            }
             base.OnSaving();
         }
 
@@ -70,7 +66,7 @@ namespace BestellErfassung.DomainObjects.Artikel
         //    set { SetPropertyValue<int>("StueckLieferbar", ref _StueckLieferbar, value); }
         //}
 
-       
+
 
         private string _ArtNr;
         [Size(60)]

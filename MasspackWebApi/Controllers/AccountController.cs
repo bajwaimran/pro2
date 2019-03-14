@@ -1,14 +1,16 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
+﻿using DevExpress.Data.Filtering;
+using DevExpress.Xpo;
+using MasspackWebApi.Models;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
-using MasspackWebApi.Models;
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
 
 namespace MasspackWebApi.Controllers
 {
@@ -17,12 +19,12 @@ namespace MasspackWebApi.Controllers
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
-
+        private UnitOfWork unitOfWork = new UnitOfWork();
         public AccountController()
         {
         }
 
-        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager )
+        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager)
         {
             UserManager = userManager;
             SignInManager = signInManager;
@@ -34,9 +36,9 @@ namespace MasspackWebApi.Controllers
             {
                 return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
             }
-            private set 
-            { 
-                _signInManager = value; 
+            private set
+            {
+                _signInManager = value;
             }
         }
 
@@ -72,7 +74,19 @@ namespace MasspackWebApi.Controllers
             {
                 return View(model);
             }
-
+            var user = await UserManager.FindByEmailAsync(model.Email);
+            if (user != null)
+            {
+                if (!await UserManager.IsEmailConfirmedAsync(user.Id))
+                {
+                    //string callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your account-Resend");
+                    //ViewBag.Title = "Verfication is in Process!...";
+                    //ViewBag.errorMessage = "We apologize for inconvinience but your Registration verification is in process and it usually take 24-48 hours to complete the verification process. Upon verification you will be able to use your Account. Thank you for your patience.";
+                    return View("Error");
+                }
+            }
+            //change returnUrl
+            returnUrl = "/Clients/";
             // This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, change to shouldLockout: true
             var result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false);
@@ -120,7 +134,7 @@ namespace MasspackWebApi.Controllers
             // If a user enters incorrect codes for a specified amount of time then the user account 
             // will be locked out for a specified amount of time. 
             // You can configure the account lockout settings in IdentityConfig
-            var result = await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent:  model.RememberMe, rememberBrowser: model.RememberBrowser);
+            var result = await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent: model.RememberMe, rememberBrowser: model.RememberBrowser);
             switch (result)
             {
                 case SignInStatus.Success:
@@ -155,15 +169,18 @@ namespace MasspackWebApi.Controllers
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-                    
+                    ViewBag.Title = "Registration successful";
+                    ViewBag.Message = "Your registratio is successful";
+                    return View("Message");
+                    //await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
+
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
                     // Send an email with this link
                     // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
                     // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
                     // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
 
-                    return RedirectToAction("Index", "Home");
+                    //return RedirectToAction("Index", "Home");
                 }
                 AddErrors(result);
             }
@@ -481,5 +498,147 @@ namespace MasspackWebApi.Controllers
             }
         }
         #endregion
+
+        public ActionResult Users()
+        {
+            return View();
+        }
+        public ActionResult GridViewPartial()
+        {
+            ViewBag.RoleList = unitOfWork.Query<XpoApplicationRole>().ToList();
+            var model = GetAllUsers();
+            return PartialView("_GridViewPartial", model);
+        }
+        public List<User> GetAllUsers()
+        {
+            var model = unitOfWork.Query<XpoApplicationUser>();
+            List<User> list = new List<User>();
+            foreach (var item in model)
+            {
+                string roleName = "";
+                if (item.Roles.Count != 0)
+                {
+                    roleName = item.Roles.FirstOrDefault().Name;
+                }
+
+                list.Add(new User { UserName = item.UserName, Email = item.Email, Id = item.Id, UserRole = roleName, Status = item.EmailConfirmed });
+            }
+            return list;
+        }
+        public ActionResult GridViewPartialRoles()
+        {
+            var model = unitOfWork.Query<XpoApplicationRole>();
+            return PartialView("_GridViewPartialRoles", model);
+        }
+        private ActionResult CreateAllRoles()
+        {
+            new XpoApplicationRole(unitOfWork)
+            {
+                Name = "SuperAdmin"
+            };
+            new XpoApplicationRole(unitOfWork)
+            {
+                Name = "Admin"
+            };
+            new XpoApplicationRole(unitOfWork)
+            {
+                Name = "User"
+            };
+            new XpoApplicationRole(unitOfWork)
+            {
+                Name = "Driver"
+            };
+            try
+            {
+                unitOfWork.CommitChanges();
+                return Content("All Roles has been created");
+            }
+            catch (Exception e)
+            {
+                return Content(e.Message);
+            }
+        }
+
+        public virtual ActionResult Edit(User item)
+        {
+
+            var oldUser = UserManager.FindById(item.Id);
+
+            if (!string.IsNullOrEmpty(item.UserRole))
+            {
+                if (oldUser.Roles.Count != 0)
+                {
+                    var oldRoleId = oldUser.Roles.SingleOrDefault().Id;
+                    var oldRoleName = unitOfWork.FindObject<XpoApplicationRole>(CriteriaOperator.Parse("Oid==?", oldRoleId)).Name;
+                    if (oldRoleName != item.UserRole)
+                    {
+                        UserManager.RemoveFromRole(item.Id, oldRoleName);
+                        UserManager.AddToRole(item.Id, item.UserRole);
+                    }
+                    else
+                        ViewData["EditError"] = "Unable to update the user";
+                }
+                else
+                {
+                    UserManager.AddToRole(item.Id, item.UserRole);
+                }
+            }
+            if (oldUser.EmailConfirmed != item.Status)
+            {
+                oldUser.EmailConfirmed = item.Status;
+                UserManager.Update(oldUser);
+            }
+            if (!string.IsNullOrEmpty(item.Password))
+            {
+                string password = UserManager.PasswordHasher.HashPassword(item.Password);
+                oldUser.PasswordHash = password;
+                UserManager.Update(oldUser);
+            }
+
+
+
+            var model = GetAllUsers();
+            return PartialView("_GridViewPartial", model);
+        }
+
+        [AllowAnonymous]
+        public string MasspackWebApiResetAdminPassword()
+        {
+            string userEmail = "i.munawer@abona-erp.com";
+            string userPassword = "Abona@2018";
+            var temp = UserManager.FindByEmail(userEmail);
+
+
+            if (temp == null)
+            {
+                var user = new ApplicationUser
+                {
+                    Email = userEmail,
+                    UserName = userEmail,
+                    EmailConfirmed = true
+                };
+                var result = UserManager.Create(user, userPassword);
+                if (result.Succeeded)
+                {
+                    UserManager.AddToRole(user.Id, "SuperAdmin");
+                    return "Admin user created";
+                }
+                else
+                {
+                    return "Unable to create admin user";
+                }
+
+            }
+            else
+            {
+                string hashedPassword = UserManager.PasswordHasher.HashPassword(userPassword);
+                temp.PasswordHash = hashedPassword;
+                UserManager.Update(temp);
+                return "Data reset done";
+            }
+
+
+        }
+
     }
 }

@@ -8,9 +8,11 @@ using DevExpress.Xpo;
 using MasspackWebApi.Models;
 using BestellErfassung.DomainObjects.Kunden;
 using DevExpress.Data.Filtering;
+using System.Web.Mvc;
 
 namespace MasspackWebApi.Controllers
 {
+    [System.Web.Http.Authorize]
     public class KundensController : ApiController
     {
         private UnitOfWork unitOfWork = new UnitOfWork();
@@ -33,7 +35,7 @@ namespace MasspackWebApi.Controllers
                     Name2 = obj.Name2,
                     Name3 = obj.Name3,
                     Strasse = obj.Strasse,
-                    Nation  = obj.Nation,
+                    Nation = obj.Nation,
                     PLZ = obj.PLZ,
                     Ort = obj.Ort,
                     eMail = obj.eMail,
@@ -41,6 +43,7 @@ namespace MasspackWebApi.Controllers
                     kdauftrgesperrt = obj.kdauftrgesperrt
                 });
             }
+            var result = new HttpStatusCodeResult(201);
             return Ok(list.ToArray());
         }
 
@@ -69,7 +72,8 @@ namespace MasspackWebApi.Controllers
                     kdauftrgesperrt = obj.kdauftrgesperrt
                 };
                 return Ok(item);
-            }else
+            }
+            else
                 return NotFound();
         }
 
@@ -109,16 +113,16 @@ namespace MasspackWebApi.Controllers
                     unitOfWork.CommitChanges();
                     return Ok(item.Oid);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     return Ok(e.Message);
                 }
-                
-                
+
+
             }
             else
                 return Ok("Correct All errror");
-            
+
         }
 
         // PUT: api/Kundens/5
@@ -127,7 +131,7 @@ namespace MasspackWebApi.Controllers
             if (ModelState.IsValid)
             {
                 var item = unitOfWork.FindObject<Kundenstamm>(CriteriaOperator.Parse("Oid==?", id));
-                if(item != null)
+                if (item != null)
                 {
                     item.Selektion = obj.Selektion;
                     item.KDNr = obj.KDNr;
@@ -147,7 +151,8 @@ namespace MasspackWebApi.Controllers
                     item.Save();
                     unitOfWork.CommitChanges();
                     return Ok(obj);
-                }else
+                }
+                else
                     return NotFound();
             }
             else
@@ -166,7 +171,7 @@ namespace MasspackWebApi.Controllers
             }
             else
                 return NotFound();
-                
+
         }
     }
 }

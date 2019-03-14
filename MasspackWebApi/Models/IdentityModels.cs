@@ -37,7 +37,7 @@ namespace MasspackWebApi.Models
         //    //	// etc.				
         //    //}
         //}
-        
+
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<ApplicationUser> manager)
         {
             // Note the authenticationType must match the one defined in CookieAuthenticationOptions.AuthenticationType
@@ -64,8 +64,47 @@ namespace MasspackWebApi.Models
         //    //}
         //}
     }
+    public class ApplicationRole : XPIdentityRole<XpoApplicationRole>
+    {
 
-    public class ApplicationDbContext 
+        public ApplicationRole()
+        { }
+        public void Assign(object source, int loadingFlags)
+        {
+            //base.Assign(source, loadingFlags);
+            //XpoApplicationRole src = source as XpoApplicationRole;
+            //if (src != null)
+            //{
+            //  // additional properties here
+            //  this.PropertyA = src.PropertyA;
+            //  // etc.             
+            //}
+        }
+    }
+    [MapInheritance(MapInheritanceType.ParentTable)]
+    public class XpoApplicationRole : XpoDxRole
+    {
+        public XpoApplicationRole(Session session) : base(session)
+        {
+        }
+        public void Assign(object source, int loadingFlags)
+        {
+            //base.Assign(source, loadingFlags);
+            //ApplicationUser src = source as ApplicationUser;
+            //if (src != null)
+            //{
+            //  // additional properties here
+            //  this.PropertyA = src.PropertyA;
+            //  // etc.             
+            //}
+        }
+
+        public static void AllRoles()
+        {
+
+        }
+    }
+    public class ApplicationDbContext
     {
         //public ApplicationDbContext()
         //    : base("DefaultConnection", throwIfV1Schema: false)
@@ -75,7 +114,7 @@ namespace MasspackWebApi.Models
         public static DX.Data.Xpo.XpoDatabase Create()
         {
             //return new ApplicationDbContext();
-            return new DX.Data.Xpo.XpoDatabase("DefaultConnection");          
+            return new DX.Data.Xpo.XpoDatabase("DefaultConnection");
 
         }
     }

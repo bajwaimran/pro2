@@ -12,6 +12,7 @@ namespace MasspackWebApi.Models
 
     public class Customer
     {
+        public int Oid { get; set; }
         public bool Selektion { get; set; }
         public int KDNr { get; set; }
         public string Suchname { get; set; }

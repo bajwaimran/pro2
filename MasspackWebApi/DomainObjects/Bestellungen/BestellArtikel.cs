@@ -2,11 +2,12 @@ using System;
 using System.Linq;
 using System.Text;
 using DevExpress.Xpo;
+using MasspackWebApi.Models;
 
 namespace BestellErfassung.DomainObjects.Bestellungen
 {
     //[DefaultClassOptions]
-      public class BestellArtikel : XPObject
+    public class BestellArtikel : XPObject
     { // Inherit from a different class to provide a custom primary key, concurrency and deletion behavior, etc. (http://documentation.devexpress.com/#Xaf/CustomDocument3146).
         public BestellArtikel(Session session)
             : base(session)
@@ -15,10 +16,10 @@ namespace BestellErfassung.DomainObjects.Bestellungen
 
 
 
-       
+
         private int _AuftragsNrKW;
         private decimal _Stueckzahl;
-       private string _ArtikelNr;
+        private string _ArtikelNr;
         [Size(90)]
         public string ArtikelNr
         {
@@ -64,8 +65,8 @@ namespace BestellErfassung.DomainObjects.Bestellungen
             get { return _Bestellung; }
             set { SetPropertyValue<DomainObjects.Bestellung>("Bestellung", ref _Bestellung, value); }
         }
-      
-   
+
+
 
         private DomainObjects.Artikel.Artikelstamm _Artikel;
         [Size(60)]
@@ -74,6 +75,9 @@ namespace BestellErfassung.DomainObjects.Bestellungen
             get { return _Artikel; }
             set { SetPropertyValue<DomainObjects.Artikel.Artikelstamm>("Artikel", ref _Artikel, value); }
         }
+
+
+
 
 
         private string _mboid;

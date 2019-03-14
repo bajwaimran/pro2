@@ -1,12 +1,5 @@
-using System;
-using System.Linq;
-using System.Text;
 using DevExpress.Xpo;
-
-using System.ComponentModel;
-using DevExpress.Data.Filtering;
-using System.Collections.Generic;
-using DevExpress.XtraEditors;
+using System;
 
 namespace BestellErfassung.DomainObjects
 {
@@ -36,7 +29,7 @@ namespace BestellErfassung.DomainObjects
             get { return _Fertig; }
             set { SetPropertyValue<Boolean>("Fertig", ref _Fertig, value); }
         }
-      
+
 
         private DateTime _Datum;
         public DateTime Datum
@@ -68,17 +61,17 @@ namespace BestellErfassung.DomainObjects
         }
 
 
-        //[Association("Bestellung-BestellKunden", typeof(Bestellungen.BestellKunden)), DevExpress.Xpo.Aggregated]
-        //public XPCollection<Bestellungen.BestellKunden> Bestellung_BestellKunden_XPColl
-        //{
-        //    get { return GetCollection<Bestellungen.BestellKunden>("Bestellung_BestellKunden_XPColl"); }
-        //}
+        [Association("Bestellung-BestellKunden", typeof(Bestellungen.BestellKunden)), DevExpress.Xpo.Aggregated]
+        public XPCollection<Bestellungen.BestellKunden> Bestellung_BestellKunden_XPColl
+        {
+            get { return GetCollection<Bestellungen.BestellKunden>("Bestellung_BestellKunden_XPColl"); }
+        }
 
-        //[Association("Bestellung-BestellAuftraege", typeof(Bestellungen.BestellAuftraege)), DevExpress.Xpo.Aggregated]
-        //public XPCollection<Bestellungen.BestellAuftraege> Bestellung_BestellAuftraege_XPColl
-        //{
-        //    get { return GetCollection<Bestellungen.BestellAuftraege>("Bestellung_BestellAuftraege_XPColl"); }
-        //}
+        [Association("Bestellung-BestellAuftraege", typeof(Bestellungen.BestellAuftraege)), DevExpress.Xpo.Aggregated]
+        public XPCollection<Bestellungen.BestellAuftraege> Bestellung_BestellAuftraege_XPColl
+        {
+            get { return GetCollection<Bestellungen.BestellAuftraege>("Bestellung_BestellAuftraege_XPColl"); }
+        }
 
 
     }

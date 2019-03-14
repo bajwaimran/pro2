@@ -20,7 +20,7 @@ namespace BestellErfassung.DomainObjects.Artikel
     //[DefaultListViewOptions(MasterDetailMode.ListViewOnly, false, NewItemRowPosition.None)]
     //[Persistent("DatabaseTableName")]
     // Specify more UI options using a declarative approach (http://documentation.devexpress.com/#Xaf/CustomDocument2701).
-    public class ArtikelLieferbar : BasePersistentObject
+    public class ArtikelLieferbar : XPObject
     { // Inherit from a different class to provide a custom primary key, concurrency and deletion behavior, etc. (http://documentation.devexpress.com/#Xaf/CustomDocument3146).
         public ArtikelLieferbar(Session session)
             : base(session)

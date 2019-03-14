@@ -11,88 +11,97 @@ using MasspackWebApi.Models;
 
 namespace MasspackWebApi.Controllers
 {
+    [Authorize]
     public class ArtikelController : ApiController
     {
         private UnitOfWork unitOfWork = new UnitOfWork();
         // GET: api/Artikel
+        ItemsController controller = new ItemsController();
+        List<Art> _artikelList;
+        public ArtikelController()
+        {
+
+        }
+        public ArtikelController(List<Art> artikelList)
+        {
+            _artikelList = artikelList;
+        }
         public IHttpActionResult Get()
         {
-            List<Art> list = new List<Art>();
-            var model = unitOfWork.Query<Artikelstamm>();
-            foreach(var obj in model)
-            {
-
-                list.Add(new Art
-                {
-                    Nr = obj.ArtNrInt,
-                    Artikeltext1 = obj.Artikeltext1,
-                    Artikeltext2 = obj.Artikeltext2,
-                    Artikeltext3 = obj.Artikeltext3,
-                    Bestand = obj.Bestand,
-                    Bezeichnung = obj.Bezeichnung,
-                    Verpackungseinheit = obj.Verpackungseinheit
-                });
-            }
-            return Ok(list.ToArray());
+            var model = controller.GetAll();
+            return Ok(model);
         }
 
         // GET: api/Artikel/5
         public IHttpActionResult Get(int id)
         {
-            var obj = unitOfWork.FindObject<Artikelstamm>(CriteriaOperator.Parse("Oid==?", id));
-            if (obj != null)
-            {
-                var item = new Art
-                {
-                    Nr = obj.ArtNrInt,
-                    Artikeltext1 = obj.Artikeltext1,
-                    Artikeltext2 = obj.Artikeltext2,
-                    Artikeltext3 = obj.Artikeltext3,
-                    Bestand = obj.Bestand,
-                    Bezeichnung = obj.Bezeichnung,
-                    Verpackungseinheit = obj.Verpackungseinheit
-                };
-                return Ok(item);
-            }
-            else
+            var model = controller.GetAll();
+            var artikel = model.Where(i => i.Oid == id);
+            if (artikel.Count() == 0)
                 return NotFound();
+            return Ok(artikel);
         }
 
         // POST: api/Artikel
+
         public IHttpActionResult Post(Art item)
         {
-            var artikelstamm = new Artikelstamm(unitOfWork)
+            if (ModelState.IsValid)
             {
-                ArtNrInt = item.Nr,
-                ArtNr = item.Nr.ToString(),
-                Bestand = item.Bestand,
-                Bezeichnung = item.Bezeichnung,
-                Artikeltext1 = item.Artikeltext1,
-                Artikeltext2 = item.Artikeltext2,
-                Artikeltext3 = item.Artikeltext3,
-                Stueckzahl = item.Stueckzahl,
-                Verpackungseinheit = item.Verpackungseinheit
-            };
-            unitOfWork.CommitChanges();
-            var model = unitOfWork.Query<Artikelstamm>();
-            return Json(model.ToArray());
+                var artikel = new Artikelstamm(unitOfWork)
+                {
+                    ArtNrInt = item.ArtNr,
+                    ArtNr = item.ArtNr.ToString(),
+                    Bestand = item.Bestand,
+                    Bezeichnung = item.Bezeichnung,
+                    Artikeltext1 = item.Artikeltext1,
+                    Artikeltext2 = item.Artikeltext2,
+                    Artikeltext3 = item.Artikeltext3,
+                    Stueckzahl = item.Stueckzahl,
+                    Verpackungseinheit = item.Verpackungseinheit
+                };
+                artikel.Save();
+                new ArtikelLieferbar(unitOfWork)
+                {
+                    Artikel = artikel,
+                    StueckzahlLieferbar = item.StueckzahlLieferbar
+                };
+                unitOfWork.CommitChanges();
+                item.Oid = artikel.Oid;
+                return Ok(item);
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
 
         // PUT: api/Artikel/5
         public IHttpActionResult Put(int id, Art item)
         {
-            var obj = unitOfWork.FindObject<Artikelstamm>(CriteriaOperator.Parse("Oid==?", id));
-            if (obj != null)
+
+            var artikel = unitOfWork.FindObject<Artikelstamm>(CriteriaOperator.Parse("Oid==?", id));
+            var artikelLieferbar = unitOfWork.FindObject<ArtikelLieferbar>(CriteriaOperator.Parse("Artikel==?", artikel));
+            if (artikelLieferbar != null && artikel != null)
             {
-                obj.Artikeltext1 = item.Artikeltext1;
-                obj.Artikeltext2 = item.Artikeltext2;
-                obj.Artikeltext3 = item.Artikeltext3;
-                obj.Bestand = item.Bestand;
-                obj.Bezeichnung = item.Bezeichnung;
-                obj.Verpackungseinheit = item.Verpackungseinheit;
-                obj.Save();
+                if (!string.IsNullOrEmpty(item.Artikeltext1))
+                    artikelLieferbar.Artikel.Artikeltext1 = item.Artikeltext1;
+                if (!string.IsNullOrEmpty(item.Artikeltext2))
+                    artikelLieferbar.Artikel.Artikeltext2 = item.Artikeltext2;
+                if (!string.IsNullOrEmpty(item.Artikeltext3))
+                    artikelLieferbar.Artikel.Artikeltext3 = item.Artikeltext3;
+                if (!string.IsNullOrEmpty(item.Bestand.ToString()))
+                    artikelLieferbar.Artikel.Bestand = item.Bestand;
+                if (!string.IsNullOrEmpty(item.Bezeichnung))
+                    artikelLieferbar.Artikel.Bezeichnung = item.Bezeichnung;
+                if (!string.IsNullOrEmpty(item.Verpackungseinheit.ToString()))
+                    artikelLieferbar.Artikel.Verpackungseinheit = item.Verpackungseinheit;
+                artikelLieferbar.Artikel.Save();
+                if (!string.IsNullOrEmpty(item.StueckzahlLieferbar.ToString()))
+                    artikelLieferbar.StueckzahlLieferbar = item.StueckzahlLieferbar;
+                artikelLieferbar.Save();
                 unitOfWork.CommitChanges();
-                return Json(obj);
+                return Json(item);
             }
             else
                 return NotFound();
@@ -104,7 +113,7 @@ namespace MasspackWebApi.Controllers
             var item = unitOfWork.FindObject<Artikelstamm>(CriteriaOperator.Parse("Oid==?", id));
             if (item != null)
             {
-                unitOfWork.Delete(item);
+                //unitOfWork.Delete(item);
                 //unitOfWork.CommitChanges();
                 return Ok("Deleted");
             }

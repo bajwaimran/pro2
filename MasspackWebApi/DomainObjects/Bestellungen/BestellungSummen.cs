@@ -1,20 +1,8 @@
-using System;
-using System.Linq;
-using System.Text;
 using DevExpress.Xpo;
-using DevExpress.ExpressApp;
-using System.ComponentModel;
-using DevExpress.ExpressApp.DC;
-using DevExpress.Data.Filtering;
-using DevExpress.Persistent.Base;
-using System.Collections.Generic;
-using DevExpress.ExpressApp.Model;
-using DevExpress.Persistent.BaseImpl;
-using DevExpress.Persistent.Validation;
 
 namespace BestellErfassung.DomainObjects.Bestellungen
 {
-    [DefaultClassOptions]
+    //[DefaultClassOptions]
     [NonPersistent]
     //[ImageName("BO_Contact")]
     //[DefaultProperty("DisplayMemberNameForLookupEditorsOfThisType")]
@@ -30,7 +18,7 @@ namespace BestellErfassung.DomainObjects.Bestellungen
 
 
         private decimal _StueckSumme;
-     
+
 
 
         public decimal StueckSumme
@@ -55,7 +43,7 @@ namespace BestellErfassung.DomainObjects.Bestellungen
 
         private bool _Lieferbar;
 
-       //[CaptionsForBoolValues("True Caption", "False Caption")]
+        //[CaptionsForBoolValues("True Caption", "False Caption")]
 
         public bool Lieferbar
         {

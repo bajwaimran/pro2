@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Text;
 using DevExpress.Xpo;
-
+using MasspackWebApi.Models;
 
 namespace BestellErfassung.DomainObjects.Bestellungen
 {
@@ -18,7 +18,7 @@ namespace BestellErfassung.DomainObjects.Bestellungen
             : base(session)
         {
         }
-      
+
 
         private DomainObjects.Kunden.Kundenstamm _Kunde;
         [Size(60)]
@@ -27,6 +27,7 @@ namespace BestellErfassung.DomainObjects.Bestellungen
             get { return _Kunde; }
             set { SetPropertyValue<DomainObjects.Kunden.Kundenstamm>("Kunde", ref _Kunde, value); }
         }
+
 
         private int _KDNr;
 
